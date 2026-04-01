@@ -1,0 +1,48 @@
+name: Sync M3U to Gitee
+
+on:
+  schedule:
+    # 每天 UTC 时间 00:00 运行（北京时间 08:00）
+    - cron: '0 0 * * *'
+  workflow_dispatch: # 允许手动触发
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download and process M3U
+        run: |
+          # 下载原始文件
+          curl -sSL "https://raw.githubusercontent.com/Jsnzkpg/Jsnzkpg/Jsnzkpg/Jsnzkpg1.m3u" -o input.m3u
+          
+          # 去掉第二行，保留第一行和第三行之后的所有内容
+          head -n 1 input.m3u > Jsnzkpg1.m3u
+          tail -n +3 input.m3u >> Jsnzkpg1.m3u
+          
+          # 显示处理结果
+          echo "原始行数：$(wc -l < input.m3u)"
+          echo "处理后行数：$(wc -l < Jsnzkpg1.m3u)"
+          echo "已删除第 2 行"
+
+      - name: Push to Gitee
+        env:
+          GITEE_TOKEN: dabaa12fedc46531b67c4a0b63cb10d6
+        run: |
+          # 配置 git
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "actions@github.com"
+          
+          # 克隆 Gitee 仓库
+          git clone "https://${GITEE_TOKEN}@gitee.com/zt192/sy.git" gitee-repo
+          cd gitee-repo
+          
+          # 复制处理后的文件
+          cp ../Jsnzkpg1.m3u .
+          
+          # 提交并推送
+          git add Jsnzkpg1.m3u
+          git commit -m "auto: sync m3u file $(date '+%Y-%m-%d %H:%M:%S')" || echo "No changes to commit"
+          git push
