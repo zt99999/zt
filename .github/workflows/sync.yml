@@ -29,7 +29,7 @@ jobs:
 
       - name: Push to Gitee
         env:
-          GITEE_TOKEN: dabaa12fedc46531b67c4a0b63cb10d6
+          GITEE_TOKEN: ${{ secrets.GITEE_TOKEN }}
         run: |
           # 配置 git
           git config --global user.name "GitHub Actions"

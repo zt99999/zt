@@ -10,14 +10,14 @@
 gh repo create m3u-auto-sync --public
 ```
 
-### 2. 配置 GitHub Secrets 和 Variables
+### 2. 配置 GitHub Secrets
 
 #### Secrets（设置 → Secrets and variables → Actions → New repository secret）
-- **GITEE_TOKEN**: 你的 Gitee 个人访问令牌
+点击 **New repository secret** 添加：
+- **Name**: `GITEE_TOKEN`
+- **Secret**: `dabaa12fedc46531b67c4a0b63cb10d6`
 
-#### Variables（设置 → Secrets and variables → Actions → Variables → New repository variable）
-- **GITEE_OWNER**: 你的 Gitee 用户名
-- **GITEE_REPO**: 目标 Gitee 仓库名
+> ⚠️ 仓库已配置为使用 Secrets，Gitee Token 不会出现在代码中
 
 ### 3. 获取 Gitee Token
 1. 访问 https://gitee.com/profile/personal_access_tokens
