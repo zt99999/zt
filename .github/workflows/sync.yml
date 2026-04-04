@@ -1,266 +1,41 @@
-﻿name: Sync M3U to Gitee
+name: Sync M3U to Gitee
 
 on:
+  push:
+    paths:
+      - 'ln2.m3u'
+  workflow_dispatch:
   schedule:
-    # 姣忓ぉ UTC 鏃堕棿 00:00 杩愯锛堝寳浜椂闂?08:00锛?
-    - cron: '0 0 * * *'
-  workflow_dispatch: # 鍏佽鎵嬪姩瑙﹀彂
+    - cron: '0 */6 * * *'  # 每 6 小时
+    - cron: '0 0 */2 * *'  # 每 2 天
+    - cron: '0 0 * * 1'    # 每周一
 
 jobs:
-  sync:
+  sync-to-gitee:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-      - name: Download and process M3U
+      - name: Setup Git
         run: |
-          # 涓嬭浇鍘熷鏂囦欢
-          curl -sSL "https://raw.githubusercontent.com/Jsnzkpg/Jsnzkpg/Jsnzkpg/Jsnzkpg1.m3u" -o input.m3u
-          
-          # 鍘绘帀绗簩琛岋紝骞惰繃婊ゆ帀澶栧浗鍙?
-          # 淇濈暀绗竴琛岋紙鏂囦欢澶达級锛岀劧鍚庝粠绗?3 琛屽紑濮嬭繃婊?
-          head -n 1 input.m3u > ln2.m3u
-          
-          # 杩囨护瑙勫垯锛氬垹闄ゅ寘鍚鍥藉彴鍒嗙粍鐨勮
-          # 鍒犻櫎鐨勫垎缁勫寘鎷細[澶栧浗]銆乕鍥介檯]銆乕Asia]銆乕USA]銆乕Korea]銆乕Japan]銆乕Thai] 绛?
-          tail -n +3 input.m3u | grep -v "#EXTINF:-1 group-title=\"馃審澶栧浗" | \
-          grep -v "#EXTINF:-1 group-title=\"馃實鍥介檯" | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚭馃嚫缇庡浗" | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚢馃嚪闊╁浗" | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚡馃嚨鏃ユ湰" | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚬馃嚟娉板浗" | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚠馃嚦鍗板害" | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚞馃嚙鑻卞浗" | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚝馃嚪娉曞浗" | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚛馃嚜寰峰浗" | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚪馃嚭淇勭綏鏂? | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚘馃嚭婢虫床" | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚚馃嚘鍔犳嬁澶? | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚫馃嚞鏂板姞鍧? | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚥馃嚲椹潵瑗夸簹" | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚠馃嚛鍗板凹" | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚨馃嚟鑿插緥瀹? | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚮馃嚦瓒婂崡" | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚥馃嚥缂呯敻" | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚢馃嚟鏌煍瀵? | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚤馃嚘鑰佹対" | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚙馃嚦鏂囪幈" | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚢馃嚳鍝堣惃鍏嬫柉鍧? | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚭馃嚳涔屽吂鍒厠" | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚥馃嚦钂欏彜" | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚦馃嚨灏兼硦灏? | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚨馃嚢宸村熀鏂潶" | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚙馃嚛瀛熷姞鎷? | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚤馃嚢鏂噷鍏板崱" | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚠馃嚪浼婃湕" | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚠馃嚩浼婃媺鍏? | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚫馃嚘娌欑壒" | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚘馃嚜闃胯仈閰? | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚩馃嚘鍗″灏? | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚢馃嚰绉戝▉鐗? | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚙馃嚟宸存灄" | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚧馃嚥闃挎浖" | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚡馃嚧绾︽棪" | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚤馃嚙榛庡反瀚? | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚫馃嚲鍙欏埄浜? | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚲馃嚜涔熼棬" | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚠馃嚤浠ヨ壊鍒? | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚨馃嚫宸村嫆鏂潶" | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚬馃嚪鍦熻€冲叾" | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚜馃嚞鍩冨強" | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚳馃嚘鍗楅潪" | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚦馃嚞灏兼棩鍒╀簹" | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚢馃嚜鑲凹浜? | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚜馃嚬鍩冨淇勬瘮浜? | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚞馃嚟鍔犵撼" | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚥馃嚘鎽╂礇鍝? | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚛馃嚳闃垮皵鍙婂埄浜? | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚬馃嚦绐佸凹鏂? | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚤馃嚲鍒╂瘮浜? | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚫馃嚛鑻忎腹" | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚫馃嚧绱㈤┈閲? | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚭馃嚞涔屽共杈? | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚬馃嚳鍧︽灏间簹" | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚪馃嚰鍗㈡椇杈? | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚙馃嚠甯冮殕杩? | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚥馃嚞椹揪鍔犳柉鍔? | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚥馃嚭姣涢噷姹傛柉" | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚫馃嚚濉炶垖灏? | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚢馃嚥绉戞懇缃? | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚛馃嚡鍚夊竷鎻? | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚜馃嚪鍘勭珛鐗归噷浜? | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚫馃嚫鍗楄嫃涓? | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚚馃嚝涓潪" | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚬馃嚛涔嶅緱" | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚚馃嚥鍠€楹﹂殕" | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚞馃嚩璧ら亾鍑犲唴浜? | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚫馃嚬鍦ｅ缇? | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚞馃嚘鍔犺摤" | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚚馃嚞鍒氭灉甯? | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚚馃嚛鍒氭灉閲? | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚘馃嚧瀹夊摜鎷? | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚦馃嚘绾崇背姣斾簹" | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚙馃嚰鍗氳尐鐡︾撼" | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚳馃嚰娲ュ反甯冮煢" | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚳馃嚥璧炴瘮浜? | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚥馃嚰椹媺缁? | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚥馃嚳鑾姣斿厠" | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚫馃嚳鏂▉澹叞" | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚤馃嚫鑾辩储鎵? | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚝馃嚡鏂愭祹" | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚨馃嚞宸存柊" | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚫馃嚙鎵€缃楅棬" | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚮馃嚭鐡﹀姫闃垮浘" | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚦馃嚚鏂板杸閲屽灏间簹" | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚨馃嚝娉曞睘娉㈠埄灏艰タ浜? | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚰馃嚫钀ㄦ懇浜? | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚬馃嚧姹ゅ姞" | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚬馃嚮鍥剧摝鍗? | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚦馃嚭绾藉焹" | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚚馃嚢搴撳厠缇ゅ矝" | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚥馃嚟椹粛灏? | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚝馃嚥瀵嗗厠缃楀凹瑗夸簹" | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚨馃嚰甯曞姵" | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚦馃嚪鐟欓瞾" | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚢馃嚠鍩洪噷宸存柉" | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚘馃嚛瀹夐亾灏? | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚘馃嚤闃垮皵宸村凹浜? | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚘馃嚬濂ュ湴鍒? | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚙馃嚲鐧戒縿缃楁柉" | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚙馃嚜姣斿埄鏃? | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚙馃嚘娉㈤粦" | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚙馃嚞淇濆姞鍒╀簹" | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚟馃嚪鍏嬬綏鍦颁簹" | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚚馃嚲濉炴郸璺柉" | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚚馃嚳鎹峰厠" | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚛馃嚢涓归害" | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚜馃嚜鐖辨矙灏间簹" | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚝馃嚠鑺叞" | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚞馃嚪甯岃厞" | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚟馃嚭鍖堢墮鍒? | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚠馃嚫鍐板矝" | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚠馃嚜鐖卞皵鍏? | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚱馃嚢绉戠储娌? | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚤馃嚮鎷夎劚缁翠簹" | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚤馃嚠鍒楁敮鏁﹀＋鐧? | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚤馃嚬绔嬮櫠瀹? | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚤馃嚭鍗㈡．鍫? | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚥馃嚬椹€充粬" | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚥馃嚛鎽╁皵澶氱摝" | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚥馃嚚鎽╃撼鍝? | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚥馃嚜榛戝北" | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚦馃嚤鑽峰叞" | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚥馃嚢鍖楅┈鍏堕】" | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚦馃嚧鎸▉" | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚨馃嚤娉㈠叞" | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚨馃嚬钁¤悇鐗? | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚪馃嚧缃楅┈灏间簹" | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚫馃嚥鍦ｉ┈鍔涜" | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚪馃嚫濉炲皵缁翠簹" | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚫馃嚢鏂礇浼愬厠" | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚫馃嚠鏂礇鏂囧凹浜? | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚜馃嚫瑗跨彮鐗? | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚫馃嚜鐟炲吀" | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚚馃嚟鐟炲＋" | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚭馃嚘涔屽厠鍏? | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚮馃嚘姊佃拏鍐? | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚙馃嚪宸磋タ" | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚘馃嚪闃挎牴寤? | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚚馃嚤鏅哄埄" | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚚馃嚧鍝ヤ鸡姣斾簹" | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚨馃嚜绉橀瞾" | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚮馃嚜濮斿唴鐟炴媺" | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚜馃嚚鍘勭摐澶氬皵" | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚙馃嚧鐜诲埄缁翠簹" | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚨馃嚲宸存媺鍦? | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚭馃嚲涔屾媺鍦? | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚞馃嚲鍦簹閭? | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚫馃嚪鑻忛噷鍗? | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚝馃嚢绂忓厠鍏扮兢宀? | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚥馃嚱澧ㄨタ鍝? | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚭馃嚫缇庡浗" | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚚馃嚘鍔犳嬁澶? | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚨馃嚘宸存嬁椹? | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚚馃嚪鍝ユ柉杈鹃粠鍔? | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚦馃嚠灏煎姞鎷夌摐" | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚟馃嚦娲兘鎷夋柉" | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚫馃嚮钀ㄥ皵鐡﹀" | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚞馃嚬鍗卞湴椹媺" | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚙馃嚳浼埄鍏? | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚚馃嚭鍙ゅ反" | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚡馃嚥鐗欎拱鍔? | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚟馃嚬娴峰湴" | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚛馃嚧澶氱背灏煎姞" | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚨馃嚪娉㈠榛庡悇" | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚬馃嚬鐗圭珛灏艰揪" | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚙馃嚫宸村搱椹? | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚙馃嚙宸村反澶氭柉" | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚘馃嚞瀹夋彁鐡? | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚛馃嚥澶氱背灏煎厠" | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚞馃嚛鏍兼灄绾宠揪" | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚢馃嚦鍦ｅ熀鑼? | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚤馃嚚鍦ｅ崲瑗夸簹" | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚮馃嚚鍦ｆ枃妫壒" | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚥馃嚫钂欑壒濉炴媺鐗? | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚘馃嚠瀹夊湱鎷? | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚮馃嚞鑻卞睘缁翠含" | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚮馃嚠缇庡睘缁翠含" | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚢馃嚲寮€鏇? | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚬馃嚚鐗瑰厠鏂? | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚘馃嚰闃块瞾宸? | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚚馃嚰搴撴媺绱? | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚫馃嚱鍦ｉ┈涓? | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚙馃嚩鍗氬灏? | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚞馃嚝娉曞睘鍦簹閭? | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚞馃嚨鐡滃痉缃楁櫘" | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚥馃嚩椹彁灏煎厠" | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚪馃嚜鐣欏凹姹? | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚲馃嚬椹害鐗? | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚫馃嚟鍦ｈ但鍕掓嬁" | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚨馃嚥鍦ｇ毊鍩冨皵" | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚙馃嚥鐧炬厱澶? | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚞馃嚤鏍奸櫟鍏? | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚠馃嚫鍐板矝" | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚝馃嚧娉曠綏" | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚞馃嚠鐩村竷缃楅檧" | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚠馃嚥椹仼宀? | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚡馃嚜娉借タ" | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚞馃嚞鏍硅タ" | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚘馃嚱濂ュ叞" | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚫馃嚡鏂摝灏斿反" | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚙馃嚮甯冮煢" | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚟馃嚥璧痉" | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚬馃嚝娉曞睘鍗楅儴" | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚨馃嚦鐨壒鍑仼" | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚚馃嚨鍏嬪埄鐝€椤? | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚘馃嚚闃挎．鏉? | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚬馃嚘鐗归噷鏂潶" | \
-          grep -v "#EXTINF:-1 group-title=\"馃嚫馃嚡鎵┈寤? | \
-          >> ln2.m3u
-          
-          # 鏄剧ず澶勭悊缁撴灉
-          echo "鍘熷琛屾暟锛?(wc -l < input.m3u)"
-          echo "澶勭悊鍚庤鏁帮細$(wc -l < ln2.m3u)"
-          echo "宸插垹闄ょ 2 琛屽拰鎵€鏈夊鍥藉彴"
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+
+      - name: Copy M3U file
+        run: |
+          ln -s $GITHUB_WORKSPACE/ln2.m3u $GITHUB_WORKSPACE/ln2.m3u
 
       - name: Push to Gitee
         env:
           GITEE_TOKEN: ${{ secrets.GITEE_TOKEN }}
         run: |
-          # 閰嶇疆 git 鍜岃璇?
-          git config --global user.name "GitHub Actions"
-          git config --global user.email "actions@github.com"
-          git config --global credential.helper '!f() { echo "username=zt192"; echo "password=${GITEE_TOKEN}"; }; f'
-          
-          # 鍏嬮殕 Gitee 浠撳簱
-          git clone "https://gitee.com/zt192/sy.git" gitee-repo
+          git clone https://gitee.com/zt192/source.git gitee-repo
           cd gitee-repo
-          
-          # 澶嶅埗澶勭悊鍚庣殑鏂囦欢
-          cp "$GITHUB_WORKSPACE/ln2.m3u" .
-          
-          # 鎻愪氦骞舵帹閫?
+          cp $GITHUB_WORKSPACE/ln2.m3u .
           git add ln2.m3u
-          git commit -m "auto: sync m3u file $(date '+%Y-%m-%d %H:%M:%S')" || echo "No changes to commit"
+          git commit -m "Sync ln2.m3u from GitHub" || echo "No changes to commit"
+          git remote set-url origin https://zt9615:$GITEE_TOKEN@gitee.com/zt192/source.git
           git push origin main --force
