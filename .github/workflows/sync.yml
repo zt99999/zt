@@ -23,6 +23,8 @@ jobs:
         run: |
           git clone https://gitee.com/zt192/source.git gitee-repo
           cd gitee-repo
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
           cp $GITHUB_WORKSPACE/lm.m3u .
           git add lm.m3u
           git commit -m "Sync lm.m3u from GitHub" || echo "No changes to commit"
